@@ -1,0 +1,144 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <iomanip>
+
+using namespace std;
+
+class Account {
+public:
+    string accNumber;
+    string name;
+    double balance;
+
+    Account() {}
+    Account(string accNum, string accName, double bal) {
+        accNumber = accNum;
+        name = accName;
+        balance = bal;
+    }
+};
+
+vector<Account> accounts;
+
+void loadAccounts() {
+    ifstream file("accounts.txt");
+    if (!file) return;
+    accounts.clear();
+    string accNumber, name;
+    double balance;
+    while (file >> accNumber >> name >> balance) {
+        accounts.push_back(Account(accNumber, name, balance));
+    }
+    file.close();
+}
+
+void saveAccounts() {
+    ofstream file("accounts.txt");
+    for (const auto &acc : accounts) {
+        file << acc.accNumber << " " << acc.name << " " << acc.balance << endl;
+    }
+    file.close();
+}
+
+void createAccount() {
+    string accNumber, name;
+    double balance;
+    cout << "Enter Account Number: "; cin >> accNumber;
+    cout << "Enter Name: "; cin >> name;
+    cout << "Enter Initial Balance: "; cin >> balance;
+    accounts.push_back(Account(accNumber, name, balance));
+    saveAccounts();
+    cout << "Account created successfully!\n";
+}
+
+void deposit() {
+    string accNumber;
+    double amount;
+    cout << "Enter Account Number: "; cin >> accNumber;
+    cout << "Enter Amount to Deposit: "; cin >> amount;
+    for (auto &acc : accounts) {
+        if (acc.accNumber == accNumber) {
+            acc.balance += amount;
+            saveAccounts();
+            cout << "Deposit successful! New Balance: " << acc.balance << endl;
+            return;
+        }
+    }
+    cout << "Account not found!\n";
+}
+
+void withdraw() {
+    string accNumber;
+    double amount;
+    cout << "Enter Account Number: "; cin >> accNumber;
+    cout << "Enter Amount to Withdraw: "; cin >> amount;
+    for (auto &acc : accounts) {
+        if (acc.accNumber == accNumber) {
+            if (acc.balance >= amount) {
+                acc.balance -= amount;
+                saveAccounts();
+                cout << "Withdrawal successful! New Balance: " << acc.balance << endl;
+            } else {
+                cout << "Insufficient balance!\n";
+            }
+            return;
+        }
+    }
+    cout << "Account not found!\n";
+}
+
+void transfer() {
+    string fromAcc, toAcc;
+    double amount;
+    cout << "Enter Your Account Number: "; cin >> fromAcc;
+    cout << "Enter Receiver's Account Number: "; cin >> toAcc;
+    cout << "Enter Amount to Transfer: "; cin >> amount;
+
+    Account *sender = nullptr, *receiver = nullptr;
+    for (auto &acc : accounts) {
+        if (acc.accNumber == fromAcc) sender = &acc;
+        if (acc.accNumber == toAcc) receiver = &acc;
+    }
+
+    if (sender && receiver) {
+        if (sender->balance >= amount) {
+            sender->balance -= amount;
+            receiver->balance += amount;
+            saveAccounts();
+            cout << "Transfer successful!\n";
+        } else {
+            cout << "Insufficient balance!\n";
+        }
+    } else {
+        cout << "Invalid account details!\n";
+    }
+}
+
+void displayAccounts() {
+    cout << "\nAccounts List:\n";
+    cout << left << setw(15) << "Account Number" << setw(15) << "Name" << "Balance\n";
+    for (const auto &acc : accounts) {
+        cout << left << setw(15) << acc.accNumber << setw(15) << acc.name << acc.balance << endl;
+    }
+}
+
+int main() {
+    loadAccounts();
+    int choice;
+    do {
+        cout << "\n Zahish Banking System\n";
+        cout << "1. Create Account\n2. Deposit\n3. Withdraw\n4. Transfer\n5. Display Accounts\n6. Exit\n";
+        cout << "Enter choice: "; cin >> choice;
+        switch (choice) {
+            case 1: createAccount(); break;
+            case 2: deposit(); break;
+            case 3: withdraw(); break;
+            case 4: transfer(); break;
+            case 5: displayAccounts(); break;
+            case 6: cout << "Thank You for Choosing Zahish Banking System...\n"; break;
+            default: cout << "Invalid choice!\n";
+        }
+    } while (choice != 6);
+    return 0;
+}
